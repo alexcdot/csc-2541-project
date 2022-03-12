@@ -1,5 +1,5 @@
-# PyTorch Template Project
-PyTorch deep learning project made easy.
+# CSC 2541 Project 2022
+Find Smaller Datasets for Hyperparameter Tuning
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
