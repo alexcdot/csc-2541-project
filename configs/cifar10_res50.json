@@ -1,6 +1,6 @@
 {
     "name": "CIFAR10_Res50",
-    "n_gpu": 2,
+    "n_gpu": 1,
 
     "arch": {
         "type": "ResNet50",
@@ -44,7 +44,7 @@
         "verbosity": 2,
         
         "monitor": "min val_loss",
-        "early_stop": 10,
+        "early_stop": -1,
 
         "tensorboard": true
     }
