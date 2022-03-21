@@ -44,7 +44,7 @@ def main(config):
     # Load original checkpoint
     
     checkpoint = torch.load(config.resume)
-    model.load_state_dict(checkpoint['state_dict'])
+    initial_model.load_state_dict(checkpoint['state_dict'])
 
     #### Get the train idx using our method
     
