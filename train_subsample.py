@@ -74,12 +74,14 @@ def main(config):
             all_activations.append(linear_activations)
             all_targets.append(target)
     
-    activations_mat = torch.stack(all_activations, dim=0).cpu().numpy()  # Train set size x num_classes
-    targets_mat = torch.stack(all_targets, dim=0).cpu().numpy()  # Train set size x num_classes
+    activations_mat = torch.cat(all_activations, dim=0).cpu().numpy()  # Train set size x num_classes
+    targets_mat = torch.cat(all_targets, dim=0).cpu().numpy()  # Train set size x num_classes
     
     # Intiailize method to get centers
     kcg = kCenterGreedy(activations_mat, targets_mat, SEED)
-    selected_train_idx = kcg.select_batch_(model, [], budget)  # list of size budget
+    selected_idx = kcg.select_batch_(model, [], budget)  # list of size budget
+    # Index the train idx list properly
+    selected_train_idx = torch.tensor(initial_data_loader.train_idx)[selected_idx]
     selected_train_idx = np.sort(selected_train_idx)
     np.savetxt(
         f"activation_cover_train_budget-{budget}_seed-{SEED}.csv",
