@@ -1,6 +1,27 @@
 # CSC 2541 Project 2022
 Find Smaller Datasets for Hyperparameter Tuning
 
+## How to run:
+
+To run standard experiment:
+
+```
+python train.py -c configs/cifar10_res18.json
+```
+
+
+To run random subsample experiment (train on 10% of training set):
+
+```
+python train.py -c configs/cifar10_res18_random.json
+```
+
+To run set cover experiment (train on 10% of training set):
+
+```
+python train_subsample.py -c configs/cifar10_res18_gradientcover.json --resume saved/models/<path to a saved checkpoint> --budget 4500
+```
+
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->

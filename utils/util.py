@@ -4,6 +4,7 @@ import pandas as pd
 from pathlib import Path
 from itertools import repeat
 from collections import OrderedDict
+from typing import Dict
 
 
 def ensure_dir(dirname):
@@ -65,3 +66,8 @@ class MetricTracker:
 
     def result(self):
         return dict(self._data.average)
+
+def get_activation_hook(name: str, activation_dict: Dict[str, torch.Tensor]):
+    def hook(model, input_tensor, output_tensor):
+        activation_dict[name] = output_tensor.detach()
+    return hook

@@ -1,21 +1,63 @@
 import numpy as np
+import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import default_collate
 from torch.utils.data.sampler import SubsetRandomSampler
+from typing import Optional
 
 
 class BaseDataLoader(DataLoader):
     """
     Base class for all data loaders
     """
-    def __init__(self, dataset, batch_size, shuffle, validation_split, num_workers, collate_fn=default_collate):
+    def __init__(
+        self,
+        dataset,
+        batch_size,
+        shuffle,
+        validation_split,
+        num_workers,
+        collate_fn=default_collate,
+        training=True,
+        train_subsample=1.0,
+        randomize_splits=True,
+        train_idx: Optional[torch.Tensor]=None,
+        train_idx_file: Optional[str] = None,
+        valid_idx_file: Optional[str] = None,
+    ):
         self.validation_split = validation_split
+        # Whether or not to apply the training transforms
+        self.training = training
+        # Whether to use random subsampler for the splits
+        self.randomize_splits = randomize_splits
+        # What percentage of the training set to keep
+        self.train_subsample = train_subsample
+        # Read train indices desired from a file
+        self.train_idx_file = train_idx_file
+        assert not (train_idx is not None and train_idx_file is not None), (
+            "At most one of train_idx (python list) and train_idx_file (a filename) should be specified"
+        )
+        
+        if self.train_idx_file is not None:
+            self.train_idx = np.loadtxt(self.train_idx_file).astype(int)
+        else:
+            # Specific train indices desired
+            self.train_idx = train_idx
+        
+        # Read valid indices desired from a file
+        self.valid_idx_file = valid_idx_file
+        
+        if self.valid_idx_file is not None:
+            self.valid_idx = np.loadtxt(self.valid_idx_file).astype(int)
+        else:
+            self.valid_idx = None
+        
         self.shuffle = shuffle
 
         self.batch_idx = 0
         self.n_samples = len(dataset)
 
-        self.sampler, self.valid_sampler = self._split_sampler(self.validation_split)
+        self.sampler, self.valid_sampler = self._split_sampler(self.validation_split, self.train_subsample, self.train_idx, self.valid_idx)
 
         self.init_kwargs = {
             'dataset': dataset,
@@ -26,25 +68,60 @@ class BaseDataLoader(DataLoader):
         }
         super().__init__(sampler=self.sampler, **self.init_kwargs)
 
-    def _split_sampler(self, split):
+
+    def _split_sampler(
+        self,
+        split,
+        train_subsample,
+        preset_train_idx,
+        preset_valid_idx
+    ):
         if split == 0.0:
             return None, None
 
-        idx_full = np.arange(self.n_samples)
-
-        np.random.seed(0)
-        np.random.shuffle(idx_full)
-
-        if isinstance(split, int):
-            assert split > 0
-            assert split < self.n_samples, "validation set size is configured to be larger than entire dataset."
-            len_valid = split
+        if preset_valid_idx is not None:
+            # Simply set the idx
+            valid_idx = preset_valid_idx
         else:
-            len_valid = int(self.n_samples * split)
+            # Randomly sample the validation indices
+            idx_full = np.arange(self.n_samples)
 
-        valid_idx = idx_full[0:len_valid]
-        train_idx = np.delete(idx_full, np.arange(0, len_valid))
+            np.random.seed(0)
+            np.random.shuffle(idx_full)
 
+            if isinstance(split, int):
+                assert split > 0
+                assert split < self.n_samples, "validation set size is configured to be larger than entire dataset."
+                len_valid = split
+            else:
+                len_valid = int(self.n_samples * split)
+
+            valid_idx = idx_full[0:len_valid]
+        
+        if preset_train_idx is not None:
+            overlapping_elements = np.isin(preset_train_idx, valid_idx)
+            assert not overlapping_elements.any(), (
+                f"{preset_train_idx[overlapping_elements]} were in both in the specified train idx, "
+                " and also in the valid idx, which is not allowed"
+            )
+            train_idx = preset_train_idx
+            # Warn if also using train subsample
+            if train_subsample != 1:
+                print("Warning: using train_subsample with train_idx option in dataloader. "
+                      "Make sure this is intended")
+        else:
+            # Simply take everything not in the validation indices
+            train_idx = np.delete(idx_full, np.arange(0, len_valid))
+            
+            
+        if 0 <= train_subsample < 1:
+            len_train = int(train_subsample * len(train_idx))
+            train_idx = np.random.choice(train_idx, len_train)
+            
+        # Record the train and valid idx to fix them. Only needs to be run once.
+#         np.savetxt("data/train_idx_split-0.9_seed-123.csv", np.sort(train_idx), delimiter=", ", fmt="%d")
+#         np.savetxt("data/valid_idx_split-0.1_seed-123.csv", np.sort(valid_idx), delimiter=", ", fmt="%d")
+        
         train_sampler = SubsetRandomSampler(train_idx)
         valid_sampler = SubsetRandomSampler(valid_idx)
 

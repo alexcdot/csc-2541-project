@@ -9,7 +9,7 @@ from utils import read_json, write_json
 
 
 class ConfigParser:
-    def __init__(self, config, resume=None, modification=None, run_id=None):
+    def __init__(self, config, resume=None, modification=None, run_id=None, budget=None):
         """
         class to parse configuration json file. Handles hyperparameters for training, initializations of modules, checkpoint saving
         and logging module.
@@ -21,6 +21,7 @@ class ConfigParser:
         # load config file and apply modification
         self._config = _update_config(config, modification)
         self.resume = resume
+        self.budget = budget
 
         # set save_dir where trained model and log will be saved.
         save_dir = Path(self.config['trainer']['save_dir'])
@@ -68,6 +69,8 @@ class ConfigParser:
             resume = None
             cfg_fname = Path(args.config)
         
+        budget = args.budget if hasattr(args, "budget") else None
+        
         config = read_json(cfg_fname)
         if args.config and resume:
             # update new config for fine-tuning
@@ -75,7 +78,7 @@ class ConfigParser:
 
         # parse custom cli options into dictionary
         modification = {opt.target : getattr(args, _get_opt_name(opt.flags)) for opt in options}
-        return cls(config, resume, modification)
+        return cls(config, resume, modification, budget=budget)
 
     def init_obj(self, name, module, *args, **kwargs):
         """
