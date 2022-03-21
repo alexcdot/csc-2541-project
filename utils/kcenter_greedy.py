@@ -30,7 +30,7 @@ from __future__ import print_function
 import numpy as np
 import time
 from sklearn.metrics import pairwise_distances
-from sampling_def import SamplingMethod
+from .sampling_def import SamplingMethod
 
 
 class kCenterGreedy(SamplingMethod):

@@ -13,9 +13,11 @@
         "args":{
             "data_dir": "data/",
             "batch_size": 128,
-            "shuffle": true,
+            "shuffle": false,
             "validation_split": 0.1,
             "num_workers": 4,
+            "training": true,
+            "return_index": true,
             "train_idx_file": "data/train_idx_split-0.9_seed-123.csv",
             "valid_idx_file": "data/valid_idx_split-0.1_seed-123.csv"
         }
