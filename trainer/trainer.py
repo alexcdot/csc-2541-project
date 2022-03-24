@@ -3,6 +3,7 @@ import torch
 from torchvision.utils import make_grid
 from base import BaseTrainer
 from utils import inf_loop, MetricTracker
+import torch.nn.functional as F
 
 
 class Trainer(BaseTrainer):
@@ -10,7 +11,8 @@ class Trainer(BaseTrainer):
     Trainer class
     """
     def __init__(self, model, criterion, metric_ftns, optimizer, config, device,
-                 data_loader, valid_data_loader=None, lr_scheduler=None, len_epoch=None):
+                 data_loader, valid_data_loader=None, lr_scheduler=None, len_epoch=None,
+                 record_el2n=False, at_epochs=None):
         super().__init__(model, criterion, metric_ftns, optimizer, config)
         self.config = config
         self.device = device
@@ -26,6 +28,8 @@ class Trainer(BaseTrainer):
         self.do_validation = self.valid_data_loader is not None
         self.lr_scheduler = lr_scheduler
         self.log_step = int(np.sqrt(data_loader.batch_size))
+        self.record_el2n = record_el2n
+        self.at_epochs = at_epochs
 
         self.train_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)
         self.valid_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)
@@ -40,6 +44,7 @@ class Trainer(BaseTrainer):
         self.model.train()
         self.train_metrics.reset()
         for batch_idx, (data, target) in enumerate(self.data_loader):
+            # TODO: check the number of returns
             data, target = data.to(self.device), target.to(self.device)
 
             self.optimizer.zero_grad()
@@ -47,6 +52,12 @@ class Trainer(BaseTrainer):
             loss = self.criterion(output, target)
             loss.backward()
             self.optimizer.step()
+
+            if self.record_el2n and self.at_epochs is not None:
+                if epoch in self.at_epochs:
+                    with torch.no_grad():
+                        normalized_output = F.softmax(output, dim=-1)
+                        el2n_score = torch.linalg.norm(normalized_output - target.to(torch.float))
 
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
             self.train_metrics.update('loss', loss.item())
