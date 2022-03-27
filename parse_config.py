@@ -31,11 +31,17 @@ class ConfigParser:
             run_id = datetime.now().strftime(r'%m%d_%H%M%S')
         self._save_dir = save_dir / 'models' / exper_name / run_id
         self._log_dir = save_dir / 'log' / exper_name / run_id
+        self._el2n_dir = save_dir / 'el2n' / exper_name / run_id
 
         # make directory for saving checkpoints and log.
         exist_ok = run_id == ''
         self.save_dir.mkdir(parents=True, exist_ok=exist_ok)
         self.log_dir.mkdir(parents=True, exist_ok=exist_ok)
+
+        if 'seed' in config:
+            self.seed = config['seed']
+        else:
+            self.seed = None
 
         # save updated config file to the checkpoint dir
         write_json(self.config, self.save_dir / 'config.json')
@@ -75,6 +81,9 @@ class ConfigParser:
         if args.config and resume:
             # update new config for fine-tuning
             config.update(read_json(args.config))
+
+        if hasattr(args, 'seed'):
+            config.update({'seed': args.seed})
 
         # parse custom cli options into dictionary
         modification = {opt.target : getattr(args, _get_opt_name(opt.flags)) for opt in options}
@@ -133,6 +142,10 @@ class ConfigParser:
     @property
     def log_dir(self):
         return self._log_dir
+
+    @property
+    def el2n_dir(self):
+        return self._el2n_dir
 
 # helper functions to update config dict with custom cli options
 def _update_config(config, modification):

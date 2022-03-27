@@ -9,8 +9,8 @@
         }
     },
     "recorder": {
-        "el2n": true,
-        "at_epochs": true
+        "el2n": false,
+        "at_epochs": false
     },
     "data_loader": {
         "type": "CIFAR10DataLoader",
@@ -22,7 +22,13 @@
             "num_workers": 4,
             "return_index": true,
             "train_idx_file": "data_loader/train_idx_split-0.9_seed-123.csv",
-            "valid_idx_file": "data_loader/valid_idx_split-0.1_seed-123.csv"
+            "valid_idx_file": "data_loader/valid_idx_split-0.1_seed-123.csv",
+            "el2n_subsample": true,
+            "el2n_percent_lb": 0.0,
+            "el2n_percent_ub": 0.5,
+            "el2n_avg_num": 2,
+            "el2n_src": "saved_el2n/el2n/CIFAR10_Res18",
+            "el2n_epoch": 1
         }
     },
     "optimizer": {
@@ -46,7 +52,7 @@
     "trainer": {
         "epochs": 1,
 
-        "save_dir": "saved_el2n/",
+        "save_dir": "saved_el2n_subsample/",
         "save_period": 10,
         "verbosity": 2,
         

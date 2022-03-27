@@ -107,6 +107,8 @@ ENV/
 data/
 input/
 saved/
+saved_el2n/
+saved_el2n_subsample/
 datasets/
 
 # editor, os cache directory

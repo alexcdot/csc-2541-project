@@ -4,6 +4,7 @@ from torchvision.utils import make_grid
 from base import BaseTrainer
 from utils import inf_loop, MetricTracker
 import torch.nn.functional as F
+import os
 
 
 class Trainer(BaseTrainer):
@@ -43,8 +44,22 @@ class Trainer(BaseTrainer):
         """
         self.model.train()
         self.train_metrics.reset()
-        for batch_idx, (data, target) in enumerate(self.data_loader):
-            # TODO: check the number of returns
+
+        if self.record_el2n and self.at_epochs is not None and (self.at_epochs == True or epoch in self.at_epochs):
+            all_data_idx = []
+            all_el2n_score = []
+            el2n = True
+        else:
+            el2n = False
+
+        for batch_idx, data_info in enumerate(self.data_loader):
+            if len(data_info) == 3:
+                data, target, data_idx = data_info
+            elif len(data_info) == 2:
+                data, target = data_info
+            else:
+                raise ValueError(f"Expecting data_info from data_loader to have size 3, got: {len(data_info)}")
+
             data, target = data.to(self.device), target.to(self.device)
 
             self.optimizer.zero_grad()
@@ -53,11 +68,12 @@ class Trainer(BaseTrainer):
             loss.backward()
             self.optimizer.step()
 
-            if self.record_el2n and self.at_epochs is not None:
-                if epoch in self.at_epochs:
-                    with torch.no_grad():
-                        normalized_output = F.softmax(output, dim=-1)
-                        el2n_score = torch.linalg.norm(normalized_output - target.to(torch.float))
+            if el2n:
+                with torch.no_grad():
+                    normalized_output = F.softmax(output, dim=-1)
+                    el2n_score = torch.linalg.norm(normalized_output - F.one_hot(target).to(output.dtype), dim=1)
+                    all_data_idx.append(data_idx)
+                    all_el2n_score.append(el2n_score)
 
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
             self.train_metrics.update('loss', loss.item())
@@ -73,6 +89,7 @@ class Trainer(BaseTrainer):
 
             if batch_idx == self.len_epoch:
                 break
+
         log = self.train_metrics.result()
 
         if self.do_validation:
@@ -81,6 +98,18 @@ class Trainer(BaseTrainer):
 
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
+
+        if el2n:
+            with torch.no_grad():
+                all_el2n_score = torch.cat(all_el2n_score)
+                all_data_idx = torch.cat(all_data_idx)
+                el2n_sorted, el2n_sort_indices = torch.sort(all_el2n_score, descending=True)
+                data_idx_sorted_with_el2n = all_data_idx[el2n_sort_indices]
+                el2n_to_save = np.stack((data_idx_sorted_with_el2n.cpu().detach().numpy(), el2n_sorted.cpu().detach().numpy()))
+                os.makedirs(self.config.el2n_dir, exist_ok=True)
+                with open(os.path.join(self.config.el2n_dir, f'el2n_epoch{epoch}.npy'), 'wb') as f:
+                    np.save(f, el2n_to_save)
+
         return log
 
     def _valid_epoch(self, epoch):
@@ -93,7 +122,14 @@ class Trainer(BaseTrainer):
         self.model.eval()
         self.valid_metrics.reset()
         with torch.no_grad():
-            for batch_idx, (data, target) in enumerate(self.valid_data_loader):
+            for batch_idx, data_info in enumerate(self.data_loader):
+                if len(data_info) == 3:
+                    data, target, data_idx = data_info
+                elif len(data_info) == 2:
+                    data, target = data_info
+                else:
+                    raise ValueError(f"Expecting data_info from data_loader to have size 3, got: {len(data_info)}")
+
                 data, target = data.to(self.device), target.to(self.device)
 
                 output = self.model(data)

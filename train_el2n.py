@@ -14,7 +14,10 @@ from utils import prepare_device
 def main(config):
 
     # fix random seeds for reproducibility
-    SEED = 123
+    if isinstance(config.seed, int):
+        SEED = config.seed
+    else:
+        SEED = 123
     torch.manual_seed(SEED)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
@@ -65,6 +68,8 @@ if __name__ == '__main__':
                       help='path to latest checkpoint (default: None)')
     args.add_argument('-d', '--device', default=None, type=str,
                       help='indices of GPUs to enable (default: all)')
+    args.add_argument('--seed', default=None, type=int,
+                      help='overriding default seed (default: None, uses code provided seed)')
 
     # custom cli options to modify configuration from default values given in json file.
     CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')

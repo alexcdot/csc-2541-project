@@ -3,13 +3,18 @@ from base import BaseDataLoader
 from typing import Optional
 import torch
 from .wrapped_datasets import CIFAR10WithIndex, CIFAR100WithIndex
-
+import os
+import numpy as np
+import math
 
 class MnistDataLoader(BaseDataLoader):
     """
     MNIST data loading demo using BaseDataLoader
     """
-    def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1, training=True, train_subsample=1.0):
+    def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1, training=True, train_subsample=1.0,
+                 el2n_subsample=False, el2n_percent_lb=None, el2n_percent_ub=None,
+                 el2n_avg_num=None, el2n_src=None, el2n_epoch=None,
+        ):
         if training:
             trsfm = transforms.Compose([
                 transforms.RandomHorizontalFlip(),
@@ -35,7 +40,19 @@ class CIFAR10DataLoader(BaseDataLoader):
         self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1,
         training=True, train_subsample=1.0, train_idx=None, train_idx_file=None, valid_idx_file=None,
         return_index=False,
+        el2n_subsample=False, el2n_percent_lb=None, el2n_percent_ub=None,
+        el2n_avg_num=None, el2n_src=None, el2n_epoch=None,
     ):
+
+        el2n_indices = self.el2n_indices(el2n_subsample, el2n_percent_lb, el2n_percent_ub,
+                                         el2n_avg_num, el2n_src, el2n_epoch)
+        if el2n_indices is not None:
+            assert train_idx is None, \
+                "el2n_indices can be successfully retrieved from given request, " \
+                "train_idx cannot be specified at the same time"
+            train_idx = el2n_indices
+            train_idx_file = None
+
         if training:
             trsfm = transforms.Compose([
                 transforms.RandomCrop(32, padding=4),
@@ -59,7 +76,7 @@ class CIFAR10DataLoader(BaseDataLoader):
             training=training, train_subsample=train_subsample, train_idx=train_idx,
             train_idx_file=train_idx_file, valid_idx_file=valid_idx_file
         )
-    
+
     @classmethod
     def from_loader_and_data_subset(
         cls,
@@ -91,6 +108,8 @@ class CIFAR100DataLoader(BaseDataLoader):
         self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1,
         training=True, train_subsample=1.0, train_idx=None, train_idx_file=None, valid_idx_file=None,
         return_index=False,
+        el2n_subsample=False, el2n_percent_lb=None, el2n_percent_ub=None,
+        el2n_avg_num=None, el2n_src=None, el2n_epoch=None,
     ):
         if training:
             trsfm = transforms.Compose([
