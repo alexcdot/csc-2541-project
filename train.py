@@ -18,7 +18,7 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 np.random.seed(SEED)
 
-def main(config):
+def main(config, hyper_tune=False):
     logger = config.get_logger('train')
 
     # setup data_loader instances
@@ -49,7 +49,8 @@ def main(config):
                       device=device,
                       data_loader=data_loader,
                       valid_data_loader=valid_data_loader,
-                      lr_scheduler=lr_scheduler)
+                      lr_scheduler=lr_scheduler,
+                      hyper_tune=hyper_tune)
 
     trainer.train()
 
