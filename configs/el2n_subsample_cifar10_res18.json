@@ -26,9 +26,9 @@
             "el2n_subsample": true,
             "el2n_percent_lb": 0.0,
             "el2n_percent_ub": 0.5,
-            "el2n_avg_num": 2,
+            "el2n_avg_num": 10,
             "el2n_src": "saved_el2n/el2n/CIFAR10_Res18",
-            "el2n_epoch": 1
+            "el2n_epoch": 10
         }
     },
     "optimizer": {
@@ -50,7 +50,7 @@
         }
     },
     "trainer": {
-        "epochs": 1,
+        "epochs": 200,
 
         "save_dir": "saved_el2n_subsample/",
         "save_period": 10,

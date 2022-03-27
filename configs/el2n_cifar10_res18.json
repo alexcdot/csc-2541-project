@@ -44,7 +44,7 @@
         }
     },
     "trainer": {
-        "epochs": 1,
+        "epochs": 10,
 
         "save_dir": "saved_el2n/",
         "save_period": 10,
