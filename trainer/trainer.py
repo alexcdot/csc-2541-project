@@ -122,7 +122,7 @@ class Trainer(BaseTrainer):
         self.model.eval()
         self.valid_metrics.reset()
         with torch.no_grad():
-            for batch_idx, data_info in enumerate(self.data_loader):
+            for batch_idx, data_info in enumerate(self.valid_data_loader):
                 if len(data_info) == 3:
                     data, target, data_idx = data_info
                 elif len(data_info) == 2:
