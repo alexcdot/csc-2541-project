@@ -107,6 +107,7 @@ ENV/
 data/
 input/
 saved/
+hyper_results/
 datasets/
 
 # editor, os cache directory
