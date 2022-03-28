@@ -101,8 +101,7 @@ class BaseTrainer:
                 self._save_checkpoint(epoch, save_best=best)
 
             if self.hyper_tune:
-                tune.report(loss=log["loss"], accuracy=log["accuracy"],
-                            val_loss=log["val_loss"], val_accuracy=log["val_accuracy"])
+                tune.report(**log)
 
     def _save_checkpoint(self, epoch, save_best=False):
         """
