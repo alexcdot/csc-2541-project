@@ -1,0 +1,72 @@
+{
+    "name": "CIFAR10_Res18",
+    "n_gpu": 1,
+
+    "arch": {
+        "type": "ResNet18",
+        "args": {
+            "num_classes": 10
+        }
+    },
+    "el2n_settings": {
+        "el2n": true,
+        "num_models": 10,
+        "at_epochs": true,
+        "epochs": 10,
+        "save_dir": "saved_el2n/",
+        "save_period": 10,
+        "verbosity": 2,
+        "monitor": "min val_loss",
+        "early_stop": -1,
+        "tensorboard": true
+    },
+    "data_loader": {
+        "type": "CIFAR10DataLoader",
+        "args":{
+            "data_dir": "data/",
+            "batch_size": 256,
+            "shuffle": false,
+            "validation_split": 0.1,
+            "num_workers": 4,
+            "return_index": true,
+            "train_idx_file": "data_loader/train_idx_split-0.9_seed-123.csv",
+            "valid_idx_file": "data_loader/valid_idx_split-0.1_seed-123.csv",
+            "el2n_subsample": true,
+            "el2n_percent_lb": 0.0,
+            "el2n_percent_ub": 0.5,
+            "el2n_avg_num": 10,
+            "el2n_src": "saved_el2n/el2n/CIFAR10_Res18",
+            "el2n_epoch": 10
+        }
+    },
+    "optimizer": {
+        "type": "SGD",
+        "args":{
+            "lr": 0.01,
+            "weight_decay": 5e-4,
+            "momentum": 0.9
+        }
+    },
+    "loss": "cross_entropy",
+    "metrics": [
+        "accuracy", "top_k_acc"
+    ],
+    "lr_scheduler": {
+        "type": "CosineAnnealingLR",
+        "args": {
+            "T_max": 200
+        }
+    },
+    "trainer": {
+        "epochs": 200,
+
+        "save_dir": "saved_el2n_subsample/",
+        "save_period": 10,
+        "verbosity": 2,
+        
+        "monitor": "min val_loss",
+        "early_stop": -1,
+
+        "tensorboard": true
+    }
+}

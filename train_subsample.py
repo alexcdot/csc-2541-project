@@ -149,3 +149,5 @@ if __name__ == '__main__':
     ]
     config = ConfigParser.from_args(args, options)
     main(config)
+
+# 20% data, CIFAR100, generate_csv file that contains the indices, resnet18, batch_size 256
