@@ -107,6 +107,8 @@ ENV/
 data/
 input/
 saved/
+saved_el2n/
+saved_el2n_subsample/
 hyper_results/
 datasets/
 

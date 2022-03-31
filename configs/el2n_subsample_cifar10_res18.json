@@ -1,24 +1,34 @@
 {
-    "name": "CIFAR100_Res18",
+    "name": "CIFAR10_Res18",
     "n_gpu": 1,
 
     "arch": {
         "type": "ResNet18",
         "args": {
-            "num_classes": 100
+            "num_classes": 10
         }
     },
+    "recorder": {
+        "el2n": false,
+        "at_epochs": false
+    },
     "data_loader": {
-        "type": "CIFAR100DataLoader",
+        "type": "CIFAR10DataLoader",
         "args":{
             "data_dir": "data/",
             "batch_size": 256,
-            "shuffle": true,
+            "shuffle": false,
             "validation_split": 0.1,
             "num_workers": 4,
-            "train_subsample": 0.2,
+            "return_index": true,
             "train_idx_file": "data_loader/train_idx_split-0.9_seed-123.csv",
-            "valid_idx_file": "data_loader/valid_idx_split-0.1_seed-123.csv"
+            "valid_idx_file": "data_loader/valid_idx_split-0.1_seed-123.csv",
+            "el2n_subsample": true,
+            "el2n_percent_lb": 0.0,
+            "el2n_percent_ub": 0.5,
+            "el2n_avg_num": 10,
+            "el2n_src": "saved_el2n/el2n/CIFAR10_Res18",
+            "el2n_epoch": 10
         }
     },
     "optimizer": {
@@ -42,7 +52,7 @@
     "trainer": {
         "epochs": 200,
 
-        "save_dir": "saved/",
+        "save_dir": "saved_el2n_subsample/",
         "save_period": 10,
         "verbosity": 2,
         
