@@ -21,16 +21,15 @@ np.random.seed(SEED)
 
 ray.init(num_gpus=1)
 
-def hyper_tune(train_config, tune_config, num_samples=10, max_num_epochs=10, gpus_per_trial=1):
-    local_dir = os.path.join(work_dir, "hyper_results", int(time.time()))
-    os.makedirs(local_dir, exist_ok=True)
-    
+def hyper_tune(train_config, tune_config, num_samples=10, max_num_epochs=10, gpus_per_trial=1): 
     work_dir = os.getcwd()
+    local_dir = os.path.join(work_dir, "hyper_results", str(int(time.time())))
+    os.makedirs(local_dir, exist_ok=True)
     scheduler = ASHAScheduler(
         metric="val_loss",
         mode="min",
         max_t=max_num_epochs,
-        grace_period=1,
+        grace_period=3,
         reduction_factor=2)
     reporter = CLIReporter(
         metric_columns=["loss", "accuracy", 'val_loss', 'val_accuracy', "training_iteration"])
@@ -72,7 +71,8 @@ if __name__ == '__main__':
     config = ConfigParser.from_args(args)
 
     tune_config = {
-        "optimizer;args;lr": tune.loguniform(1e-4, 1e-1),
-        "data_loader;args;batch_size": tune.choice([32, 64, 128, 256]),
+        "optimizer;args;lr": tune.choice([1e-3, 1e-2, 1e-1]),
+        "data_loader;args;batch_size": tune.choice([64, 256]),
+        "optimizer;type": tune.choice(["SGD", "Adam"]),
     }
-    hyper_tune(config, tune_config, num_samples=10, max_num_epochs=10, gpus_per_trial=1)
+    hyper_tune(config, tune_config, num_samples=12, max_num_epochs=15, gpus_per_trial=1)
