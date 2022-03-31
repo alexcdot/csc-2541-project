@@ -109,6 +109,7 @@ input/
 saved/
 saved_el2n/
 saved_el2n_subsample/
+hyper_results/
 datasets/
 
 # editor, os cache directory

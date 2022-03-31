@@ -2,13 +2,14 @@ import torch
 from abc import abstractmethod
 from numpy import inf
 from logger import TensorboardWriter
+from ray import tune
 
 
 class BaseTrainer:
     """
     Base class for all trainers
     """
-    def __init__(self, model, criterion, metric_ftns, optimizer, config):
+    def __init__(self, model, criterion, metric_ftns, optimizer, config, hyper_tune=False):
         self.config = config
         self.logger = config.get_logger('trainer', config['trainer']['verbosity'])
 
@@ -16,6 +17,7 @@ class BaseTrainer:
         self.criterion = criterion
         self.metric_ftns = metric_ftns
         self.optimizer = optimizer
+        self.hyper_tune = hyper_tune
 
         cfg_trainer = config['trainer']
         self.epochs = cfg_trainer['epochs']
@@ -97,6 +99,9 @@ class BaseTrainer:
 
             if epoch % self.save_period == 0:
                 self._save_checkpoint(epoch, save_best=best)
+
+            if self.hyper_tune:
+                tune.report(**log)
 
     def _save_checkpoint(self, epoch, save_best=False):
         """
