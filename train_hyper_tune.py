@@ -3,6 +3,7 @@ import torch
 import numpy as np
 from parse_config import ConfigParser
 import os
+import time
 import ray
 from ray import tune
 from ray.tune import CLIReporter
@@ -21,6 +22,9 @@ np.random.seed(SEED)
 ray.init(num_gpus=1)
 
 def hyper_tune(train_config, tune_config, num_samples=10, max_num_epochs=10, gpus_per_trial=1):
+    local_dir = os.path.join(work_dir, "hyper_results", int(time.time()))
+    os.makedirs(local_dir, exist_ok=True)
+    
     work_dir = os.getcwd()
     scheduler = ASHAScheduler(
         metric="val_loss",
@@ -37,13 +41,16 @@ def hyper_tune(train_config, tune_config, num_samples=10, max_num_epochs=10, gpu
         num_samples=num_samples,
         scheduler=scheduler,
         progress_reporter=reporter,
-        local_dir=os.path.join(work_dir, "hyper_results"))
+        local_dir=local_dir
+    )
     best_trial = result.get_best_trial("val_loss", "min", "last")
     print("Best trial config: {}".format(best_trial.config))
     print("Best trial final validation loss: {}".format(
         best_trial.last_result["val_loss"]))
     print("Best trial final validation accuracy: {}".format(
         best_trial.last_result["val_accuracy"]))
+    df = result.trial_dataframes
+    df.to_csv(os.path.join(local_dir, "results.csv"))
 
 
 def single_job(tune_config, train_config, ori_work_dir=None):
