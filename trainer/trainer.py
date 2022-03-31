@@ -72,7 +72,7 @@ class Trainer(BaseTrainer):
             if el2n:
                 with torch.no_grad():
                     normalized_output = F.softmax(output, dim=-1)
-                    el2n_score = torch.linalg.norm(normalized_output - F.one_hot(target).to(output.dtype), dim=1)
+                    el2n_score = torch.linalg.norm(normalized_output - F.one_hot(target, num_classes=normalized_output.size(-1)).to(output.dtype), dim=1)
                     all_data_idx.append(data_idx)
                     all_el2n_score.append(el2n_score)
 
