@@ -22,6 +22,12 @@ To run set cover experiment (train on 10% of training set):
 python train_subsample.py -c configs/cifar10_res18_gradientcover.json --resume saved/models/<path to a saved checkpoint> --budget 4500
 ```
 
+To run hyperparameter tuning:
+
+```
+python train_hyper_tune.py -c configs/cifar100_res18_random20.json
+```
+
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->

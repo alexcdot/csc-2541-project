@@ -3,6 +3,7 @@ import torch
 import numpy as np
 from parse_config import ConfigParser
 import os
+import ray
 from ray import tune
 from ray.tune import CLIReporter
 from ray.tune.schedulers import ASHAScheduler
@@ -16,6 +17,8 @@ torch.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 np.random.seed(SEED)
+
+ray.init(num_gpus=1)
 
 def hyper_tune(train_config, tune_config, num_samples=10, max_num_epochs=10, gpus_per_trial=1):
     work_dir = os.getcwd()
