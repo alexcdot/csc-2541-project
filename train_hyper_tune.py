@@ -48,7 +48,8 @@ def hyper_tune(train_config, tune_config, num_samples=10, max_num_epochs=10, gpu
         best_trial.last_result["val_loss"]))
     print("Best trial final validation accuracy: {}".format(
         best_trial.last_result["val_accuracy"]))
-    df = result.trial_dataframes
+    # Get row when each trial had its max val accuracy
+    df = result.dataframe(metric="val_accuracy", mode="max")
     df.to_csv(os.path.join(local_dir, "results.csv"))
 
 
@@ -71,8 +72,8 @@ if __name__ == '__main__':
     config = ConfigParser.from_args(args)
 
     tune_config = {
-        "optimizer;args;lr": tune.choice([1e-3, 1e-2, 1e-1]),
-        "data_loader;args;batch_size": tune.choice([64, 256]),
-        "optimizer;type": tune.choice(["SGD", "Adam"]),
+        "optimizer;args;lr": tune.grid_search([1e-3, 1e-2, 1e-1]),
+        "data_loader;args;batch_size": tune.grid_search([64, 256]),
+        "optimizer;type": tune.grid_search(["SGD", "Adam"]),
     }
     hyper_tune(config, tune_config, num_samples=12, max_num_epochs=15, gpus_per_trial=1)
