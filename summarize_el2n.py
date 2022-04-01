@@ -38,7 +38,7 @@ def _el2n_indices_one_epoch(el2n_percent_lb, el2n_percent_ub, el2n_dirs, epoch):
 
 def el2n_indices(el2n_percent_lb=0.0, el2n_percent_ub=1.0,
                  el2n_avg_num=None, el2n_src_dir=None, el2n_epoch=None,
-                 save_csv=True):
+                 save_csv_folder=None):
 
     assert os.path.isdir(el2n_src_dir)
     el2n_dirs = sorted(os.listdir(el2n_src_dir))
@@ -57,8 +57,8 @@ def el2n_indices(el2n_percent_lb=0.0, el2n_percent_ub=1.0,
 
     for epoch in range(1, el2n_epoch):
         el2n_avg_score_sorted, el2n_index_sorted = _el2n_indices_one_epoch(el2n_percent_lb, el2n_percent_ub, el2n_dirs, epoch)
-        if save_csv:
-            csv_folder = os.path.join(el2n_src_dir, "csv_files")
+        if save_csv_folder is not None:
+            csv_folder = os.path.join(el2n_src_dir, save_csv_folder)
             os.makedirs(csv_folder, exist_ok=True)
             score_csv = os.path.join(csv_folder, f'score_epoch{epoch}.csv')
             rank_csv = os.path.join(csv_folder, f'rank_epoch{epoch}.csv')
@@ -68,10 +68,11 @@ def el2n_indices(el2n_percent_lb=0.0, el2n_percent_ub=1.0,
 
 def main():
     el2n_indices(el2n_percent_lb=0.0,
-                 el2n_percent_ub=1.0,
+                 el2n_percent_ub=0.2,
                  el2n_avg_num=None,
                  el2n_src_dir="./saved_el2n/cifar100_res18/el2n/CIFAR100_Res18/",
-                 el2n_epoch=2)
+                 el2n_epoch=11,
+                 save_csv_folder="csv_files_20percent")
 
 
 if __name__=="__main__":
