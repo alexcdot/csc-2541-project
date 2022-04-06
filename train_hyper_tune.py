@@ -15,7 +15,7 @@ from train import main
 # fix random seeds for reproducibility
 SEED = 123
 torch.manual_seed(SEED)
-torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = False
 np.random.seed(SEED)
 

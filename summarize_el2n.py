@@ -71,7 +71,7 @@ def main():
                  el2n_percent_ub=0.2,
                  el2n_avg_num=None,
                  el2n_src_dir="./saved_el2n/cifar100_res18/el2n/CIFAR100_Res18/",
-                 el2n_epoch=11,
+                 el2n_epoch=100,
                  save_csv_folder="csv_files_20percent")
 
 
