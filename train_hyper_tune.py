@@ -21,7 +21,7 @@ np.random.seed(SEED)
 
 ray.init(num_gpus=1)
 
-def hyper_tune(train_config, tune_config, num_samples=3, max_num_epochs=10, gpus_per_trial=1): 
+def hyper_tune(train_config, tune_config, num_samples=2, max_num_epochs=10, gpus_per_trial=1):
     work_dir = os.getcwd()
     local_dir = os.path.join(work_dir, "hyper_results", str(int(time.time())))
     os.makedirs(local_dir, exist_ok=True)
@@ -76,4 +76,4 @@ if __name__ == '__main__':
         "data_loader;args;batch_size": tune.grid_search([64, 256]),
         "optimizer;type": tune.grid_search(["SGD", "Adam"]),
     }
-    hyper_tune(config, tune_config, num_samples=12, max_num_epochs=15, gpus_per_trial=1)
+    hyper_tune(config, tune_config, num_samples=2, max_num_epochs=10, gpus_per_trial=1)
