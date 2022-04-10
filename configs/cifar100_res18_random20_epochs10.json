@@ -16,6 +16,7 @@
             "shuffle": true,
             "validation_split": 0.1,
             "num_workers": 4,
+            "train_subsample": 0.2,
             "train_idx_file": "data_loader/train_idx_split-0.9_seed-123.csv",
             "valid_idx_file": "data_loader/valid_idx_split-0.1_seed-123.csv"
         }
@@ -39,7 +40,7 @@
         }
     },
     "trainer": {
-        "epochs": 100,
+        "epochs": 10,
 
         "save_dir": "saved/",
         "save_period": 50,
