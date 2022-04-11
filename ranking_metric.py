@@ -15,11 +15,9 @@ def ranking_score_kendalltau(gt_scores, pred_scores):
     correlation, p_value = stats.kendalltau(gt_rank, pred_rank)
     return correlation
 
-
-
-if __name__ == '__main__':
+def get_ranking_args():
     parser = argparse.ArgumentParser(description='PyTorch Template')
-    parser.add_argument('-gt', '--groud_truch_csv',
+    parser.add_argument('-gt', '--ground_truth_csv',
                         default="ranking/results_random20_epochs100.csv",
                         type=str,
                         help='ground truth csv file path (default: None)')
@@ -41,13 +39,22 @@ if __name__ == '__main__':
                         type=str,
                         help='the filed name used to measure score of each experiment in the csv file')
     args = parser.parse_args()
+    return args
 
-    gt_df = pd.read_csv(args.groud_truch_csv)
+def get_ranking_score_from_args(args):
+    gt_df = pd.read_csv(args.ground_truth_csv)
     pred_df = pd.read_csv(args.predict_csv)
     # the fields used to identify experiment
     exp_fields = args.exp_fields
     # the field used to measure experiment performance
     metric_name = args.metric_name
+    # Average the metric values for the experiments using the exp_fields to group
+    import pdb
+    pdb.set_trace()
+    
+    gt_df.groupby(exp_fields)[metric_name].mean()
+    
+    
     gt_df = gt_df.sort_values(exp_fields).reset_index(drop=True)
     pred_df = pred_df.sort_values(exp_fields).reset_index(drop=True)
     # assert gt csv and pred csv have identical set of experiments
@@ -55,6 +62,11 @@ if __name__ == '__main__':
     gt_scores = gt_df[metric_name].to_numpy()
     pred_scores = pred_df[metric_name].to_numpy()
     rank_score = ranking_score_kendalltau(gt_scores, pred_scores)
+    return rank_score
+
+if __name__ == '__main__':
+    args = get_ranking_args()
+    rank_score = get_ranking_score_from_args(args)
     print("Ranking score is {}".format(rank_score))
 
 
