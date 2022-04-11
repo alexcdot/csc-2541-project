@@ -49,14 +49,15 @@ def get_ranking_score_from_args(args):
     # the field used to measure experiment performance
     metric_name = args.metric_name
     # Average the metric values for the experiments using the exp_fields to group
-    import pdb
-    pdb.set_trace()
+#     import pdb
+#     pdb.set_trace()
     
-    gt_df.groupby(exp_fields)[metric_name].mean()
+    gt_df = gt_df.groupby(exp_fields)[metric_name].mean().reset_index(drop=False).sort_values(exp_fields).reset_index(drop=True)
+    pred_df = pred_df.groupby(exp_fields)[metric_name].mean().reset_index(drop=False).sort_values(exp_fields).reset_index(drop=True)
     
     
-    gt_df = gt_df.sort_values(exp_fields).reset_index(drop=True)
-    pred_df = pred_df.sort_values(exp_fields).reset_index(drop=True)
+#     gt_df = gt_df.sort_values(exp_fields).reset_index(drop=True)
+#     pred_df = pred_df.sort_values(exp_fields).reset_index(drop=True)
     # assert gt csv and pred csv have identical set of experiments
     pd.testing.assert_frame_equal(gt_df[exp_fields], pred_df[exp_fields])
     gt_scores = gt_df[metric_name].to_numpy()
