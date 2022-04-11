@@ -4,9 +4,10 @@ from ranking_metric import get_ranking_args, get_ranking_score_from_args
 
 if __name__ == "__main__":
     base_args = get_ranking_args()
-    gt_file = "results_full100_epochs100.csv"
+    gt_file = "results_full100_tuneepochs100.csv"
     ranking_dir = "ranking"
     base_args.ground_truth_csv = os.path.join(ranking_dir, gt_file)
+#     base_args.ranking_method = "l1"
     
     for file in sorted(os.listdir("ranking")):
         if "csv" in file and file != "gt_file":
@@ -14,6 +15,6 @@ if __name__ == "__main__":
             try:
                 rank_score = get_ranking_score_from_args(base_args)
 
-                print(f"Ranking score for {file} is: {rank_score}")
+                print(f"Ranking score for {file} is: {rank_score:.3f}")
             except Exception as e:
                 print(e)
