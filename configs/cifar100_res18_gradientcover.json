@@ -12,7 +12,7 @@
         "type": "CIFAR100DataLoader",
         "args":{
             "data_dir": "data/",
-            "batch_size": 256,
+            "batch_size": 1,
             "shuffle": false,
             "validation_split": 0.1,
             "num_workers": 4,
@@ -41,7 +41,7 @@
         }
     },
     "trainer": {
-        "epochs": 200,
+        "epochs": 100,
 
         "save_dir": "saved/",
         "save_period": 50,

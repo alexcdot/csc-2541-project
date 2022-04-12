@@ -16,7 +16,7 @@
             "shuffle": true,
             "validation_split": 0.1,
             "num_workers": 4,
-            "train_idx_file": "data_loader/activation_cover_train_budget-9000_seed-123.csv",
+            "train_idx_file": "data_loader/gradient_cover_train_budget-9000_seed-123.csv",
             "valid_idx_file": "data_loader/valid_idx_split-0.1_seed-123.csv"
         }
     },

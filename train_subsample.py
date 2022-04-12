@@ -22,6 +22,10 @@ torch.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 np.random.seed(SEED)
+
+# Allow for greater files when batch size is low
+torch.multiprocessing.set_sharing_strategy('file_system')
+
 def main(config):
     logger = config.get_logger('train')
 
@@ -46,6 +50,10 @@ def main(config):
     checkpoint = torch.load(config.resume)
     initial_model.load_state_dict(checkpoint['state_dict'])
 
+
+    # get function handles of loss
+    criterion = getattr(module_loss, config['loss'])
+    
     #### Get the train idx using our method
     
     # Indices list
@@ -54,6 +62,8 @@ def main(config):
     all_activations = []
     # Labels list over train examples
     all_targets = []
+    # Gradients list over train examples
+    all_gradients = []
     
     # Budget of samples
     budget = config.budget
@@ -62,19 +72,28 @@ def main(config):
     activations_dict = {}
     initial_model.linear.register_forward_hook(get_activation_hook("linear", activations_dict))
     
-    initial_model.eval()
-    with torch.no_grad():
-        for batch_idx, (data, target, index) in enumerate(initial_data_loader):
-            data, target = data.to(device), target.to(device)
+#     initial_model.eval()
+#     with torch.no_grad():
+    for batch_idx, (data, target, index) in enumerate(initial_data_loader):
+        data, target = data.to(device), target.to(device)
 
-            output = initial_model(data)
-            linear_activations = activations_dict["linear"]  # B x num_classes
-            
-            all_train_idx.append(index)
-            all_activations.append(linear_activations)
-            all_targets.append(target)
+        output = initial_model(data)
+        linear_activations = activations_dict["linear"]  # B x num_classes
+        
+        loss = criterion(output, target)
+        loss.backward()
+        linear_grad = initial_model.linear.weight.grad[:, ::32].reshape(
+            1, -1
+        ).cpu()  # B x num_classes * fc layer/32 where B == 1
+
+        all_train_idx.append(index)
+        all_activations.append(linear_activations)
+        all_targets.append(target)
+        all_gradients.append(linear_grad)
+        
     
     activations_mat = torch.cat(all_activations, dim=0).cpu().numpy()  # Train set size x num_classes
+    gradients_mat = torch.cat(all_gradients, dim=0).cpu().numpy()  # Train set size x fc layer * num_classes
     targets_mat = torch.cat(all_targets, dim=0).cpu().numpy()  # Train set size x num_classes
     
     # Intiailize method to get centers
@@ -91,43 +110,52 @@ def main(config):
     )
     print("Saved activation cover!")
     
-    # Data loader for selected subset of dataset
-    data_loader = initial_data_loader.from_loader_and_data_subset(
-        initial_data_loader,
-        training=True,
-        train_idx=selected_train_idx,
-        return_index=False
+    
+    # Intiailize method to get centers
+    kcg = kCenterGreedy(gradients_mat, targets_mat, SEED)
+    selected_idx = kcg.select_batch_(model, [], budget)  # list of size budget
+    # Index the train idx list properly
+    selected_train_idx = torch.tensor(initial_data_loader.train_idx)[selected_idx]
+    selected_train_idx = np.sort(selected_train_idx)
+    np.savetxt(
+        f"gradient_cover_train_budget-{budget}_seed-{SEED}.csv",
+        selected_train_idx,
+        delimiter=", ",
+        fmt="%d"
     )
-    valid_data_loader = data_loader.split_validation()
-    # Remove resume from config so we start training from scratch
-    config.resume = None
+    print("Saved gradient cover!")
     
-    # get function handles of loss and metrics
-    criterion = getattr(module_loss, config['loss'])
-    metrics = [getattr(module_metric, met) for met in config['metrics']]
+#     Uncomment to train the model with the cover
+    
+#     # Data loader for selected subset of dataset
+#     data_loader = initial_data_loader.from_loader_and_data_subset(
+#         initial_data_loader,
+#         training=True,
+#         train_idx=selected_train_idx,
+#         return_index=False
+#     )
+#     valid_data_loader = data_loader.split_validation()
+#     # Remove resume from config so we start training from scratch
+#     config.resume = None
+    
+#     # get function handles of metrics
+#     metrics = [getattr(module_metric, met) for met in config['metrics']]
 
-    # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
-    trainable_params = filter(lambda p: p.requires_grad, model.parameters())
-    optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
-    lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler,
-                                           optimizer)    
+#     # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
+#     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
+#     optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
+#     lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler,
+#                                            optimizer)    
     
-    # Train as normal
-    trainer = Trainer(model, criterion, metrics, optimizer,
-                      config=config,
-                      device=device,
-                      data_loader=data_loader,
-                      valid_data_loader=valid_data_loader,
-                      lr_scheduler=lr_scheduler)
+#     # Train as normal
+#     trainer = Trainer(model, criterion, metrics, optimizer,
+#                       config=config,
+#                       device=device,
+#                       data_loader=data_loader,
+#                       valid_data_loader=valid_data_loader,
+#                       lr_scheduler=lr_scheduler)
 
-    trainer.train()
-
-    
-    
-# TODO:
-# have a function to get a subsample of the dataset
-# then rerun training from scratch (maybe with a new model)
-# on the new dataset, and record perf/model separately
+#     trainer.train()
 
 
 if __name__ == '__main__':

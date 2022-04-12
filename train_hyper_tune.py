@@ -76,4 +76,4 @@ if __name__ == '__main__':
         "data_loader;args;batch_size": tune.grid_search([64, 256]),
         "optimizer;type": tune.grid_search(["SGD", "Adam"]),
     }
-    hyper_tune(config, tune_config, num_samples=2, max_num_epochs=10, gpus_per_trial=1)
+    hyper_tune(config, tune_config, num_samples=1, max_num_epochs=10, gpus_per_trial=1)
