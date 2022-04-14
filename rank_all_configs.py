@@ -11,19 +11,18 @@ if __name__ == "__main__":
     
     all_ranks_df = None
     for file in sorted(os.listdir("ranking")):
-        if "csv" in file and file != "gt_file":
+        if "csv" in file: # and file != "gt_file":
             base_args.predict_csv = os.path.join(ranking_dir, file)
-            try:
-                rank_score, pred_df = get_ranking_score_from_args(base_args)
+            
+            rank_score, pred_df = get_ranking_score_from_args(base_args)
 
-                print(f"Ranking score for {file} is: {rank_score:.3f}")
-                
-                if all_ranks_df is None:
-                    all_ranks_df = pred_df
-                    del all_ranks_df["val_accuracy"]
-                all_ranks_df[file.split("results_")[-1].split(".csv")[0]] = pred_df["val_accuracy"]
+            print(f"Ranking score for {file} is: {rank_score:.3f}")
+
+            if all_ranks_df is None:
+                all_ranks_df = pred_df
+                all_ranks_df = all_ranks_df.drop(columns=["val_accuracy"])
+            exp_name = file.split("results_")[-1].split(".csv")[0]
+            all_ranks_df[exp_name] = pred_df["val_accuracy"]
                     
-            except Exception as e:
-                print(e)
     print(all_ranks_df)
     all_ranks_df.to_csv("all_ranks.csv")
