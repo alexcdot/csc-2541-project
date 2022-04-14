@@ -1,5 +1,17 @@
-# CSC 2541 Project 2022
-Find Smaller Datasets for Hyperparameter Tuning
+# CSC 2541 Project 2022: Core-set Selection via Gradients
+
+Core-set selection aims to select a small subset of representative items from a
+large training dataset that approximates the underlying properties or structure of
+the entire dataset, in the sense that applying some machine learning algorithms to
+the two sets results in similar performance. Finding core-set is an important open
+problem in machine learning and scientific computing as it allows improving data
+efficiency and training speed for learning algorithms. However, existing core-set
+methods show poor generalization ability on deep neural networks. In this paper,
+we propose to select the effective core-set by analyzing the gradient and the error
+of samples during the training process. Experiments on the CIFAR 100 dataset
+shows the our simple approach achieves better performance in image classification
+performance, and accurate hyperparameter tuning compared to baseline models,
+reduce necessary computation by 20x.
 
 ## How to run:
 
