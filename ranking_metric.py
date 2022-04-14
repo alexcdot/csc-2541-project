@@ -81,7 +81,7 @@ def get_ranking_score_from_args(args):
         rank_score = ranking_score_l1(gt_scores, pred_scores)
     else:
         raise NotImplementedError(f"Ranking method: {args.ranking_method} is not supported")
-    return rank_score
+    return rank_score, pred_df
 
 if __name__ == '__main__':
     args = get_ranking_args()
